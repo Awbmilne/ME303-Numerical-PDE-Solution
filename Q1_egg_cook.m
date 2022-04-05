@@ -99,7 +99,7 @@ for j = 1:len
     plot(T(:,indexes(3)));
     plot(T(:,indexes(4)));
     plot(T(:,indexes(5)));
-    xlabel('r (mm)'); ylabel('T(x,t) (°C)');
+    xlabel('r (mm)'); ylabel('T(x,t) (C)');
     legend(split(sprintf('t = %i sec,', round(times(:))), ","), 'Location', "east");
     exportgraphics(f, sprintf("out/q1/%s/2D_Plot.png",safe_name), 'Resolution', 300);
     clf(f);
@@ -108,7 +108,7 @@ for j = 1:len
     [X,Y] = meshgrid(r_set,t_set(1:graph_div:end));
     mesh(X,Y,T(:,1:graph_div:end)');
     colormap('parula');
-    xlabel('r (mm)'); ylabel('t (sec)'); zlabel('T(x,t) (°C)');
+    xlabel('r (mm)'); ylabel('t (sec)'); zlabel('T(x,t) (C)');
     colorbar;
     caxis([5 100]);
     exportgraphics(f, sprintf("out/q1/%s/3D_Plot.png",safe_name), 'Resolution', 300);

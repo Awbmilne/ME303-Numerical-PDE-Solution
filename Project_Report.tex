@@ -1,0 +1,359 @@
+
+\documentclass[12pt]{article}
+\usepackage[a4paper, total={6.5in, 9in}]{geometry}
+\usepackage{import}
+
+\import{./}{macros}
+
+
+\title{
+    % UW Mech/Tron Eng Logo
+    \includegraphics[width=\linewidth]{resources/uwaterloo_mechanical_and_mechatronics_engineering/UWaterloo_Mechanical_Mechatronics_Eng_Logo_horiz_rgb.png}
+    \\[1cm]
+    \underline{\bf{ME 303 - Project 2 - Numerical PDE Solving}}
+}
+\author{
+    Japmeet Brar \\
+    Kevin Chu \\
+    Austin W. Milne \\
+    Joshua Selvanayagam
+}
+\date{April 5, 2022}
+
+
+\begin{document}
+\pagenumbering{gobble}
+\maketitle
+\vfill
+\begin{abstract}
+    Project 2 report for ME 303 in Winter 2022. Using numerical PDE solutions to model heat propagation through homogeneous materials. The source code and report can be found online:
+    \underline{\url{https://github.com/Awbmilne/ME303-Numerical-PDE-Solution}}.
+\end{abstract}
+
+\clearpage
+\pagenumbering{roman}
+
+\tableofcontents
+
+\clearpage
+\listoftables
+\listoffigures
+\lstlistoflistings
+
+% PROBLEM OVERVIEW ──────────────────────────────────────────────────────────────── %
+\clearpage
+\pagenumbering{arabic}
+\section{Overview}
+
+
+% QUESTION 1 ────────────────────────────────────────────────────────────────────── %
+\section{ Cooking an Egg with 1D Heat Equation}
+
+An interesting health related application of partial differential equations and the 1 dimensional heat equation is modeling heat propagation for cooked foods. For many raw foods, it is important that they are cooked to certain temperatures in order to kill off dangerous bacterial growth. While the food industry is always getting better at preserving foods for longer and longer, it is still important to protect our health with proper cooking. One such common household food is the humble egg. While a cooked egg is lovely for all, a raw egg can carry salmonella and the risk of serious food poisoning. The FDA recommends cooking in-shell eggs to an internal temperature of 68\textdegree C for at least 17 seconds \cite{fda_egg_cook}. While this may produce a "safe" egg, It would not provide a very delectable breakfast. For the purposes of this report, a boiled egg will be considered to be cooked by having a minimum internal temperature of 80\textdegree C for 10 seconds.  
+
+\subsection{Mathematical Model}
+
+In order to mathematically model the heat propagation inside of an egg using the 1D heat equation, some assumptions need to be made. First off, eggs have evolved over tens of millions of years to have very specific shapes, conducive to laying and sitting, providing the strength needed for the babies to survive. Unfortunately, this makes mathematical modeling more difficult. For this report, it is assumed that the eggs are perfectly spherical. The radius of the eggs is determined by the average of the long and short radius. Next, eggs consist of a number of layers. Each of these layers clearly has a different density, thermal conductivity, and specific heat. For the purposes of this report, it is assumed that the entire egg is homogeneous in its thermal and mechanical properties, and that no convection currents occur within the mass.
+
+Through some research, it was found that the 1D heat equation can be respresented in spherical coordinates with the below equation \cite{spherical_math}:
+
+\begin{equation}
+    \label{eqn:q1_1d_spherical_heat}
+    r^2 \frac{\partial T}{\partial t} = \alpha \frac{\partial}{\partial r} \left( r^2 \frac{\partial T}{\partial r} \right) + r^2 \frac{\dot q}{\rho \, c_p} , \qquad \text{where} \quad \alpha = \frac{k}{\rho \, c_p}
+\end{equation}
+
+\noindent This equation can be more easily utilized in the form:
+
+\begin{equation}
+    \label{eqn:q1_1d_spherical_heat_clean}
+    \frac{\partial T}{\partial t} = \alpha \left( \frac{\partial^2 T}{\partial r^2} + \frac{2}{r} \, \frac{\partial T}{\partial r} \right) + \frac{\dot q}{\rho \, c_p} , \qquad \text{where} \quad \alpha = \frac{k}{\rho \, c_p}
+\end{equation}
+
+Equation \ref{eqn:q1_1d_spherical_heat_clea} provides the basic PDE for the system, but the boundary conditions are needed to find a solution. When boiling an egg, the outer surface should always be in contact with 100\textdegree C water. This provides an Dirichlet (type 1) boundary condition of $T(r=R, t) = 100$. From there, it is simply a case of providing an initial condition. We can assume that the egg being cooked starts at room temperature (20\textdegree C), giving $T(r, t=0) = 20$. Using these, we can provide a full description for the system:
+
+\begin{equation}
+    \label{eqn:q1_pde}
+    \begin{aligned}
+        \text{PDE:} & \quad T_t = \alpha \left( T_{rr} + \frac{2}{r} T_r \right), \quad r \in \left(0, R\right), \, t \in \left(0, t_{\text{80\textdegree C}} + 10 \right) \\
+        \text{BCs:} & \quad T(r=R, t) = 100 \\
+        \text{IC:}  & \quad T(r, t=0) = 20 \\
+    \end{aligned}
+\end{equation}
+
+\subsection{Numerical Solution}
+
+For the numerical solution, the differential elements in the PDE need to be replaced with relations of the previous elements. In this case $T_{rr}$ can be replaced with $\frac{T_{i+1}^k - 2 T_i^k + T_{i-1}^k}{\Delta r^2}$ and $T_r$ can be replaced with $\frac{T_{i+1}^k - T_{i-1}^k}{2 \Delta r}$. $T_t$ can then also be replaced with $\frac{T_i^{k+1} - T_i^k}{\Delta t}$. Rearranging the equation then creates an expression for the incremented $T_i^{k+1}$.
+
+\begin{equation}
+    \label{eqn:q1_numerical_soln}
+    \begin{gathered}
+        T_t = \alpha \left( T_{rr} + \frac{2}{r} T_r \right) \\
+        \frac{T_i^{k+1} - T_i^k}{\Delta t} = \alpha \left( \frac{T_{i+1}^k - 2 T_i^k + T_{i-1}^k}{\Delta r^2} + \frac{2}{r} \, \frac{T_{i+1}^k - T_{i-1}^k}{2\Delta r} \right) \\
+        T_i^{k+1} = T_i^k + \Delta t \, \alpha \left( \frac{T_{i+1}^k - 2 T_i^k + T_{i-1}^k}{\Delta r^2} + \frac{2}{r} \, \frac{T_{i+1}^k - T_{i-1}^k}{2\Delta r} \right)
+    \end{gathered}
+\end{equation}
+
+\noindent This is then implemented in the code as shown in listing \ref{lst:q1_incrementing}.
+
+\setcounterref{lstlinereffirst}{code:q1_increment_start}
+\setcounterref{lstlinereflast}{code:q1_increment_end}
+\lstinputlisting[title=\texttt{\scriptsize Egg Cooking PDE Incrementing},
+                 caption=Egg Cooking PDE Incrementing | Q1\_egg\_cook.m,
+                 label=lst:q1_incrementing,
+                 firstline=\thelstlinereffirst,
+                 lastline=\thelstlinereflast,
+                 firstnumber=\thelstlinereffirst]{./Q1_egg_cook.m}
+                 
+\noindent The boundary and initial conditions are applied both before the incrementing loop and during the iteration. Listing \ref{lst:q1_initial_cond} and \ref{lst:q1_boundary_cond} show the initial and boundary conditions applied to the system.
+
+\setcounterref{lstlinereffirst}{code:q1_initial_cond_start}
+\setcounterref{lstlinereflast}{code:q1_initial_cond_end}
+\lstinputlisting[title=\texttt{\scriptsize Egg Cooking PDE Initial Conditions},
+                 caption=Egg Cooking PDE Initial Conditions | Q1\_egg\_cook.m,
+                 label=lst:q1_initial_cond,
+                 firstline=\thelstlinereffirst,
+                 lastline=\thelstlinereflast,
+                 firstnumber=\thelstlinereffirst]{./Q1_egg_cook.m}
+
+\setcounterref{lstlinereffirst}{code:q1_boundary_cond_start}
+\setcounterref{lstlinereflast}{code:q1_boundary_cond_end}
+\lstinputlisting[title=\texttt{\scriptsize Egg Cooking PDE Boundary Conditions},
+                 caption=Egg Cooking PDE Boundary Conditions | Q1\_egg\_cook.m,
+                 label=lst:q1_boundary_cond,
+                 firstline=\thelstlinereffirst,
+                 lastline=\thelstlinereflast,
+                 firstnumber=\thelstlinereffirst]{./Q1_egg_cook.m}
+
+\noindent The full code can be found in the section \ref{sec:code_listings} of the appendix as listing \ref{lst:q1}, or \href{https://github.com/Awbmilne/ME303-Numerical-PDE-Solution}{online}.
+
+\subsection{Results}
+
+The numerical solution was run for a selection of egg sizes. While the most obvious choice is a chicken egg, quail and ostrich eggs were also selected to provide variety and insight into the effects of different radii. The chicken egg was also tested from a lower starting temperature. While it is possible to store fresh eggs at room temperature, most eggs found in grocery stores in the North America are washed, as to remove the waxy covering that prevents bacteria entering the egg. As a result, store bought eggs should always remain refrigerated. The chicken egg was also tested at 5\textdegree C to see how the cook time differs. Table \ref{tab:q1_args} shows the list of tested parameters and the eventual time to cook.
+
+\begin{table}[H]
+    \centering
+    \caption{Egg Cooking Input Arguments}
+    \label{tab:q1_args}
+    \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        Egg Type & Radius (mm) & Starting Temp (\textdegree C) & Cook Time (sec) & Cook Time \\ \hline
+        Chicken Egg (fridge) & 0.0255 & 5 & 992.19 & 16m32s \\
+        Chicken Egg & 0.0255 & 20 & 916.84 & 15m17s \\
+        Quail Egg & 0.0145 \cite{quail_egg} & 20 & 303.22 & 5m3s \\
+        Ostrich Egg & 0.0875 \cite{ostrich_egg} & 20 & 10687.25 & 178m7s \\
+        \hline
+    \end{tabular}
+\end{table}
+
+Running the numerical solution for the set of eggs showed very similar behaviour. While the time scale for each egg cooking was very different, the general pattern of heat propagation was very consistent. Figure \ref{fig:q1_egg_sizes} shows how each of the eggs have almost identical graphs, save for the time and radius scales. Figure \ref{fig:q1_3d_eggs} provides some more context with a 3D representations of the cooking process.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q1/quail_egg/2D_Plot.png}
+        \caption{2D Quail Egg Cooking Heat}
+        \label{fig:q1_egg_sizes_quail}
+    \end{subfigure}
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q1/ostrich_egg/2D_Plot.png}
+        \caption{2D Ostrich Egg Cooking Heat}
+        \label{fig:q1_egg_sizes_Ostrich}
+    \end{subfigure}
+    \\
+    \begin{subfigure}[]{0.75\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q1/reg_egg/2D_Plot.png}
+        \caption{2D Chicken Egg Cooking Heat}
+        \label{fig:q1_egg_sizes_chicken}
+    \end{subfigure}
+    \caption{Cooking Heat for Selection of Eggs (2D)}
+    \label{fig:q1_egg_sizes}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q1/quail_egg/3D_Plot.png}
+        \caption{3D Quail Egg Cooking Heat}
+        \label{fig:q1_3d_egg_quail}
+    \end{subfigure}
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q1/ostrich_egg/3D_Plot.png}
+        \caption{3D Ostrich Egg Cooking Heat}
+        \label{fig:q1_3d_egg_Ostrich}
+    \end{subfigure}
+    \\
+    \begin{subfigure}[]{0.75\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q1/reg_egg/3D_Plot.png}
+        \caption{3D Chicken Egg Cooking Heat}
+        \label{fig:q1_3d_egg_chicken}
+    \end{subfigure}
+    \caption{Cooking Heat for Selection of Eggs (3D)}
+    \label{fig:q1_3d_eggs}
+\end{figure}
+
+\clearpage
+In regards to differences in temperature, there was very little to be seen. While it did require slightly more time to cook the refrigerated egg (about 1 minute), there is little noticeable difference in the graphs of figure \ref{fig:q1_temps}. If observed closely, the difference in initial temperature between figure \ref{fig:q1_temps_3d_reg} and figure \ref{fig:q1_temps_3d_fridge} can be seen, but the temperatures quickly normalize as the increased temperature difference speeds up the heat transfer into the refrigerated egg.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q1/reg_egg/2D_Plot.png}
+        \caption{Room Temp Chicken Egg}
+        \label{fig:q1_temps_2d_reg}
+    \end{subfigure}
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q1/fridge_egg/2D_Plot.png}
+        \caption{Refrigerated Chicken Egg}
+        \label{fig:q1_temps_2d_fridge}
+    \end{subfigure}
+    \\
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q1/reg_egg/3D_Plot.png}
+        \caption{Room Temp Chicken Egg}
+        \label{fig:q1_temps_3d_reg}
+    \end{subfigure}
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q1/fridge_egg/3D_Plot.png}
+        \caption{Refrigerated Chicken Egg}
+        \label{fig:q1_temps_3d_fridge}
+    \end{subfigure}
+    \caption{Cooking Heat for Different Initial Egg Temperatures}
+    \label{fig:q1_temps}
+\end{figure}
+
+\subsection{Improving Thermal Efficiency}
+
+In an industrial or commercial application, cost is almost always the driving factor. One major cost related to food production is energy usage, generally in the form of heat. While it may be fast and convenient to heat an egg using boiling water, it is not terribly efficient. As can be seen in figure \ref{fig:q1_egg_sizes_chicken}, when the center of the egg reaches the required internal temperature, every other part of the egg reaches a temperature significantly above this. All of this excess temperature is a sign of the unnecessary heat in that part of the egg. The easiest solution to reducing this excess heat is to lower the temperature used to heat the egg. If a target temperature of 80\textdegree C is desired, a slightly higher temperature of 81\textdegree C can be used to slowly force the heat into the egg. In order to determine the energy transferred into the egg, we can use the below equation.
+
+\begin{equation}
+    \label{eqn:q1_heat_absorbed}
+    Q = \int_0^R (T(r) - T_0) \, \rho \, c_p \, \left( \frac{4}{3} \pi \, r^3 \right) \, dr
+\end{equation}
+
+\noindent Discretizing this integral, the existing values from the numerical solution can be used.
+
+\begin{equation}
+    \label{eqn:q1_heat_discretized}
+    Q = \sum_{\substack{r=0 \\ \text{step} \, \Delta r}}^{R} (T_r^{k_{final}} - T_0) \, \rho \, c_p \, \left( \frac{4}{3} \pi \, r^3 \right) \, \Delta r
+\end{equation}
+
+\noindent Using equation \ref{eqn:q1_heat_discretized}, the data could be generated for table \ref{tab:q1_efficiency} using all of the configurations listed in table \ref{tab:q1_args} and an additional configuration of a chicken egg cooked using 81\textdegree C water.
+
+As can be seen, there is an energy savings of almost 20\%. While the time required increased more than twofold, the energy savings is significant. In the context of a factory, a large vat could be used to heat the eggs. In which case, the time required would not be of major consequence. Instead, the energy saved would could greatly reduce the cost of production. Not to mention any energy saving thanks to no longer creating large amounts of steam with 100\textdegree C water.
+
+\begin{table}[H]
+    \centering
+    \caption{Egg Cooking Energy Usage}
+    \label{tab:q1_efficiency}
+    \begin{tabular}{|c|c|c|c|c|c|}
+        \hline
+        Egg Type & $\substack{\text{Starting} \\\text{Temp (\textdegree C)}}$ & $\substack{\text{Cooking} \\\text{Temp (\textdegree C)}}$ & Cook Time & Energy Absorbed (J) \\ \hline
+        Quail Egg & 20 & 100 & 5m3s & 35.5 \\
+        Chicken Egg (slow cook) & 20 & 81 & 35m7s & 272.7 \\
+        Chicken Egg & 20 & 100 & 15m17s & 338.3 \\
+        Chicken Egg (fridge) & 5 & 100 & 16m32s & 405.6 \\
+        Ostrich Egg & 20 & 100 & 178m7s & 46833.0 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\noindent The heat propagation shown in figure \ref{fig:q1_efficiency} highlights the low temperature difference and increased amount of time needed for saturation of 80\textdegree C.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q1/reg_egg/2D_Plot.png}
+        \caption{Chicken Egg Cooked at 100\textdegree C}
+        \label{fig:q1_efficiency_2d_reg}
+    \end{subfigure}
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q1/slow_egg/2D_Plot.png}
+        \caption{Chicken Egg Cooked at 81\textdegree C}
+        \label{fig:q1_efficiency_2d_slow}
+    \end{subfigure}
+    \\
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q1/reg_egg/3D_Plot.png}
+        \caption{Chicken Egg Cooked at 100\textdegree C}
+        \label{fig:q1_efficiency_3d_reg}
+    \end{subfigure}
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q1/slow_egg/3D_Plot.png}
+        \caption{Chicken Egg Cooked at 81\textdegree C}
+        \label{fig:q1_efficiency_3d_slow}
+    \end{subfigure}
+    \caption{Cooking Heat for Low Temp Cooking}
+    \label{fig:q1_efficiency}
+\end{figure}
+
+% Question 2 ────────────────────────────────────────────────────────────────────── %
+\clearpage
+\section{1D Heat Equation - Analytical and Numerical Solutions}
+
+General statement, blah blah
+
+\subsection{Analytical Solution}
+
+\subsection{Numerical Solution}
+
+\subsection{Effects of Numerical Solution Parameters}
+
+% Question 3 ────────────────────────────────────────────────────────────────────── %
+\clearpage
+\section{2D Heat Equation - Cooling Flatbread}
+
+General statement, blah blah
+
+\subsection{Exclusively Dirichlet Boundary Conditions}
+
+\subsection{Mixed Boundary Conditions}
+
+\subsection{Interpretation}
+
+% BIBLIOGRAPHY ──────────────────────────────────────────────────────────────────── %
+\clearpage
+\bibliographystyle{plain} % We choose the "plain" reference style
+\bibliography{references} % Entries are in the references.bib file
+
+% APPENDIX ──────────────────────────────────────────────────────────────────────── %
+\clearpage
+\section{Appendix} \label{sec:appendix}
+
+\subsection{Group Member Contribution}
+
+\begin{table}[]
+    \centering
+    \caption{Group Member Contributions}
+    \label{tab:member_contribution}
+    \begin{tabular}{|c|p{9cm}|} \hline
+        Member & \multicolumn{1}{|c|}{Contributions} \\ \hline
+        Japmeet Brar & \\ \hline
+        Kevin Chu & \\ \hline
+        Austin W. Milne & Question 1, Including Math, code, graphs, and report. Overall report formatting. \\ \hline
+        Joshua Selvanayagam & \\ \hline
+    \end{tabular}
+\end{table}
+
+\subsection{Full Code Listings} \label{sec:code_listings}
+
+% Q1_egg_cook.m
+\lstinputlisting[title=\texttt{\scriptsize Q1_egg_cook.m},
+                 caption= Numerical 1D Heat Equation in Spherical| Q1\_egg\_cook.m,
+                 label=lst:q1]{./Q1_egg_cook.m}
+\clearpage
+
+\end{document}
