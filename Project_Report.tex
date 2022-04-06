@@ -13,10 +13,10 @@
     \underline{\bf{ME 303 - Project 2 - Numerical PDE Solving}}
 }
 \author{
-    Japmeet Brar \\
-    Kevin Chu \\
     Austin W. Milne \\
-    Joshua Selvanayagam
+    Japmeet Brar \\
+    Joshua Selvanayagam \\
+    Kevin Chu
 }
 \date{April 5, 2022}
 
@@ -45,7 +45,14 @@
 \pagenumbering{arabic}
 \section{Overview}
 
+PDEs provide an invaluable tool for modeling systems. While algebra and basic calculus provide insights into physical phenomena and the interaction of forces and energies, PDEs allow the mathematical modeling of the interaction of a single or multidimensional system. This can be used for everything from 1D waves to 3D fluid simulation. One of the most common PDEs used in engineering is the heat equation:
 
+\begin{equation}
+    \label{eqn:3d_heat_equation}
+    \frac{\partial u}{\partial t} = \alpha \left( \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} + \frac{\partial^2 u}{\partial z^2} \right)
+\end{equation}
+
+\noindent The heat equation provides insight into how heat flows through a system of most commonly up to 3 dimensions. While not perfect, it provides the groundwork for creating complex simulations of thermal systems. This report focuses on a couple applications of the heat equation and how MATLAB can be used to provide numerical solutions to moderately complex systems.
 % QUESTION 1 ────────────────────────────────────────────────────────────────────── %
 \section{ Cooking an Egg with 1D Heat Equation}
 
@@ -55,7 +62,7 @@ An interesting health related application of partial differential equations and 
 
 In order to mathematically model the heat propagation inside of an egg using the 1D heat equation, some assumptions need to be made. First off, eggs have evolved over tens of millions of years to have very specific shapes, conducive to laying and sitting, providing the strength needed for the babies to survive. Unfortunately, this makes mathematical modeling more difficult. For this report, it is assumed that the eggs are perfectly spherical. The radius of the eggs is determined by the average of the long and short radius. Next, eggs consist of a number of layers. Each of these layers clearly has a different density, thermal conductivity, and specific heat. For the purposes of this report, it is assumed that the entire egg is homogeneous in its thermal and mechanical properties, and that no convection currents occur within the mass.
 
-Through some research, it was found that the 1D heat equation can be respresented in spherical coordinates with the below equation \cite{spherical_math}:
+Through some research, it was found that the 1D heat equation can be represented in spherical coordinates with the below equation \cite{spherical_math}:
 
 \begin{equation}
     \label{eqn:q1_1d_spherical_heat}
@@ -304,25 +311,524 @@ As can be seen, there is an energy savings of almost 20\%. While the time requir
 \clearpage
 \section{1D Heat Equation - Analytical and Numerical Solutions}
 
-General statement, blah blah
+The 1D Heat equation is a fundamental application of Partial Differential Equations. It is used to model how temperature changes along every point on an object, with respect to time. 1D refers to the analysis of temperature along a single dimension or axis of distance. The 2D heat equation accounts for two directions and will be discussed later in the report. Since temperature is dependent on two variables: distance and time, the PDE must accounts for both relationships. The 1D Heat Equation used for this system can be described by a PDE and its respective parameters:
+
+\begin{equation}
+    \label{eqn:q2_pde}
+    \begin{aligned}
+        \text{PDE:} & \quad u_t = 2 u_{xx}, \quad x \in \left(0, 1\right), \, t \in \left(0, \infty\right) \\
+        \text{BCs:} & \quad u(x=0, t) = 0, \, u(x=1, t) = 2 \\
+        \text{IC:}  & \quad u(x, t=0) = \cos(\pi x) = f(x) \\
+    \end{aligned}
+\end{equation}
 
 \subsection{Analytical Solution}
 
+Based on the system described in Equation \ref{eqn:q2_pde}, it is apparent that there are two non-homogeneous Dirichlet boundaries. The boundary at $x =0$ will be referred to by $u_0$ and similarly $u_L$ for $x = L = 1$. To analytically solve this PDE, the method of Separation of Variables must be performed. However, this method only works for linear and homogeneous PDEs. Equation \ref{eqn:q2_shift_equation} denotes the shift equation which accounts for the differing boundaries:
+
+\begin{equation}
+    \label{eqn:q2_shift_equation}
+    \centering
+    \begin{gathered}
+        \phi = u_0 + \frac{u_L - u_0}{L} x \\
+        \phi = 0 + \frac{2 - 0}{1} x \\
+        \phi = 2x
+    \end{gathered}
+\end{equation}
+
+This shift equation permits the use of S.O.V. on a new PDE where the boundaries can be homogeneous at 0 and the shift function will reflect the real boundary conditions in the original PDE. The initial condition for this new PDE of: $v_t = 2v_{xx}$ also incorporates the shift function.
+
+\begin{equation}
+    \label{eqn:q2_initial_condition}
+    \begin{aligned}
+        \text{IC:}  & \quad v(x, t=0) = f(x) - \phi \\
+        & \quad v(x, t=0) = \cos(\pi x) - 2x
+    \end{aligned}
+\end{equation}
+
+Now S.O.V. can be performed on this new PDE with the newly defined B.C. and I.C. The first step shown in equation \ref{eqn:q2_anly_soln} requires the PDE to be split into two ODEs: one for distance ($x$) and one for time ($t$).
+
+\begin{subequations}
+    \centering
+    \label{eqn:q2_anly_soln}
+    \begin{array}{c|c}
+        \begin{minipage}{0.2\textwidth}
+            \label{eqn:q2_anly_start}
+            \begin{equation}\begin{gathered}
+                v_t = 2 v_{xx} \\
+                \Downarrow \\
+                \text{S.O.V.}
+            \end{gathered}\end{equation}
+        \end{minipage}
+        &
+        \begin{minipage}{0.6\textwidth}
+            \label{eqn:q2_anly_ic_bc}
+            \begin{equation}\begin{aligned}
+                \text{IC:} & \, v(x, \, t=0) = f(x) - \left[ u_0 + \frac{u_L - u_0}{L}x \right] \\
+                \text{BC:} & \, v(0, \, t) = 0 \\
+                & \, v(1, \, t) = 0
+            \end{aligned}\end{equation}
+        \end{minipage}
+    \end{array}
+    \\
+    \begin{minipage}{0.5\textwidth}
+        \begin{equation}
+            \label{eqn:q2_anly_sov}
+            v=XT \quad \rightarrow \quad \frac{X''}{X} = \frac{T'}{\alpha^2 T} = k
+        \end{equation}
+    \end{minipage}
+    \\
+    \begin{array}{c|c}
+        \begin{minipage}{0.48\textwidth}
+            \label{eqn:q2_anly_left}
+            \begin{equation}\begin{gathered}
+                \begin{aligned}
+                    X'' &- k X = 0 \\
+                    k &= -\mu^2 < 0 \\
+                    X &= A \cos(\mu\,x) + B \sin(\mu\,x)
+                \end{aligned}\\
+                \begin{aligned}
+                    u &= X(0) \, T = 0 \quad \rightarrow \quad X(0) = 0\\
+                    u &= X(1) \, T = 0 \quad \rightarrow \quad X(1) = 0\\
+                    X(0) &= A(1) + B(0) = 0 \quad \rightarrow \quad A = 0\\
+                    X(L)& = 0 + B \, \sin(\mu\,L) = 0
+                \end{aligned}\\
+                B \ne 0\, , \quad \, \mu L = n \, \pi \\
+                X_n = B_n \, \sin \biggl( \underbrace{\frac{n\,\pi}{L}}_{L=1} x \biggr) \\
+                \boxed{X_n = B_n \, \sin(n\,\pi\,x)}
+            \end{gathered}\end{equation}
+        \end{minipage}
+        &
+        \begin{minipage}{0.48\textwidth}
+            \label{eqn:q2_anly_right}
+            \begin{equation}\begin{gathered}
+                \begin{aligned}
+                    T' &- k \alpha^2 T = 0 \\
+                    T' &+ \left( \mu \alpha^2 \right) T = 0 \\
+                    T &= C \cdot e^{-(\mu \alpha)^2 t} \quad \rightarrow \, \alpha = \sqrt{2}
+                \end{aligned} \\
+                \boxed{T_n = C_n \, e^{-2 (n \pi)^2 t}}
+            \end{gathered}\end{equation}
+        \end{minipage}
+    \end{array}
+\end{subequations}
+
+Next, refer to the equation $v = XT$, shown in equation \ref{eqn:q2_anly_sov}. $X_n$ and $B_n$ can be plugged back into this equation to find $V_n$. To find the solution to the PDE, $V_n$ can be written as the sum of infinite combinations of $X_n$ and $V_n$ to give us $v(x,t)$. This is shown in equation \ref{eqn:q2_v_PDE}.
+
+\begin{equation}
+    \label{eqn:q2_v_PDE}
+    \centering
+    \begin{gathered}
+        V_n = X_n T_n \\
+        v(x,t) = \sum_{n=1}^{\infty} C_n  B_n e^{-2(n \pi)^2 t} \, \sin(n \pi x) \\
+        v(x,t) = \sum_{n=1}^{\infty} D_n e^{-2(n \pi)^2 t} \, \sin(n \pi x)
+    \end{gathered}
+\end{equation}
+
+Equation \ref{eqn:q2_v_PDE} provides the solution for the shifted PDE, but the value of coefficient $D_n$ is still required. To solve for $D_n$, the use of the shifted I.C. described in equation \ref{eqn:q2_initial_condition} presents itself. By equating the I.C. and the PDE when $v(x,t=0)$, $D_n$ can be found.
+
+\begin{subequations}
+    \label{eqn:q2_coefficient_Dn}
+    \begin{equation}\begin{gathered}
+        v(x,t=0) = \sum_{n=1}^{\infty} D_n e^{-2(n \pi)^2 (0)} \, \sin(n \pi x) \\
+        v(x,t=0) = \sum_{n=1}^{\infty} D_n \, \sin(n \pi x) \\
+        cos(\pi x) - 2x = \sum_{n=1}^{\infty} D_n \, \sin(n \pi x) \\
+    \end{gathered}\end{equation}\\
+    Use Euler's Coefficient Formula for a Fourier sine series to solve for $D_n$ \\
+    \begin{equation}\begin{gathered}
+        D_n = \frac{2}{L} \int_{0}^{L} [f(x)] \, \sin(n \pi x) \, dx \\
+        D_n = 2 \int_{0}^{1} [cos(\pi x) - 2x] \, \sin(n \pi x) \, dx \\
+    \end{gathered}\end{equation}\\
+    Due to the complexity of the integral, it was solved using WolframAlpha \\
+    \begin{equation}
+        D_n = \frac{2 \left[\frac{\pi n^3 (\cos(\pi n) + 1)}{n^2 - 1} - 2 \sin(\pi n) + 2 \pi n \, \cos (\pi n) \right]}{\pi^2 n^2}
+    \end{equation}
+\end{subequations}
+
+Now that $D_n$ has been solved, the PDE of $v_t = 2 v_{xx}$ has been solved. Yet, there is one step left: $v(x,t)$ must be plugged back into the solution for the original 1D Heat Equation PDE. This is shown below:
+
+\begin{equation}
+    \label{eqn:q2_final_solution}
+    \centering
+    \begin{gathered}
+        u(x,t) = v(x,t) + \phi \\
+        u(x,t) = 2x + \sum_{n=1}^{\infty} D_n e^{-2(n \pi)^2 t} \, \sin(n \pi x)
+    \end{gathered}
+\end{equation}
+
+\noindent Therefore the final analytical solution to the 1D Heat Equation from equation \ref{eqn:q2_pde} is found.
+
 \subsection{Numerical Solution}
 
-\subsection{Effects of Numerical Solution Parameters}
+The same 1D Heat Equation PDE from equation \ref{eqn:q2_pde} can also be solved numerically. Similarly to the process used in Section 2.2, the differential elements of the PDE need to be replaced with relations of their previous elements. This is performed using an explicit time-advancement scheme. For this case, $u_t$ can be replaced with $\frac{T_{i}^{k+1} - T_i^k}{\Delta t}$ and $u_{xx}$ can be replaced with $\frac{T_{i+1}^{k} - 2 T_i^k + T_{i-1}^k}{\Delta x^2}$. The theory behind this solution method consists of using the temperature distributions from the previous time-step to determine the temperature distribution at the next time-step. Since the I.C. dictates the the temperature along every point of the material at $t = 0$, the temperature of a specific point after $\Delta t$ has passed, is governed by the temperature of its surrounding points just before $\Delta t$. To demonstrate this concept, the heat equation PDE is rearranged to solve for $T_{i}^{k+1}$.
+
+\begin{equation}
+    \label{eqn:q2_numerical_soln}
+    \begin{gathered}
+        T_t = 2 T_{xx} \\
+        \frac{T_i^{k+1} - T_i^k}{\Delta t} = 2 \left( \frac{T_{i+1}^k - 2 T_i^k + T_{i-1}^k}{\Delta x^2} \right) \\
+        T_i^{k+1} = T_i^k + \frac{2 \Delta t}{\Delta x^2} \, \left(T_{i+1}^k - 2 T_i^k + T_{i-1}^k \right) \\
+        F = \frac{2 \Delta t}{\Delta x^2}
+    \end{gathered}
+\end{equation}
+
+\noindent This is then implemented in the code as shown in listing \ref{lst:q2_incrementing}.
+
+\setcounterref{lstlinereffirst}{code:q2_loop_start}
+\setcounterref{lstlinereflast}{code:q2_loop_end}
+\lstinputlisting[title=\texttt{\scriptsize Explicit Time Advancement Incrementing},
+                 caption=Explicit Time Advancement Incrementing | Q2\_1D\_heat\_eqn.m,
+                 label=lst:q2_incrementing,
+                 firstline=\thelstlinereffirst,
+                 lastline=\thelstlinereflast,
+                 firstnumber=\thelstlinereffirst]{./Q2_1D_heat_eqn.m}
+
+\noindent Note: alpha in the code has been already initialized and calculated according to $F$ shown in equation \ref{eqn:q2_numerical_soln}.
+
+\noindent The boundary and initial conditions are applied both before the incrementing loop and during the iteration. Listing \ref{lst:q2_initial_cond} and \ref{lst:q2_boundary_cond} show the initial and boundary conditions applied to the system.
+
+\setcounterref{lstlinereffirst}{code:q2_initial_cond_start}
+\setcounterref{lstlinereflast}{code:q2_initial_cond_end}
+\lstinputlisting[title=\texttt{\scriptsize 1D Heat Equation Initial Conditions},
+                 caption=1D Heat Equation Initial Conditions | Q2\_1D\_heat\_eqn.m,
+                 label=lst:q2_initial_cond,
+                 firstline=\thelstlinereffirst,
+                 lastline=\thelstlinereflast,
+                 firstnumber=\thelstlinereffirst]{./Q2_1D_heat_eqn.m}
+
+\setcounterref{lstlinereffirst}{code:q2_boundary_cond_start}
+\setcounterref{lstlinereflast}{code:q2_boundary_cond_end}
+\lstinputlisting[title=\texttt{\scriptsize 1D Heat Equation Boundary Conditions},
+                 caption=1D Heat Equation Boundary Conditions | Q2\_1D\_heat\_eqn.m,
+                 label=lst:q2_boundary_cond,
+                 firstline=\thelstlinereffirst,
+                 lastline=\thelstlinereflast,
+                 firstnumber=\thelstlinereffirst]{./Q2_1D_heat_eqn.m}
+
+\noindent The full code can be found in the section \ref{sec:code_listings} of the appendix as listing \ref{lst:q2}.
+
+\subsection{Comparison of Numerical and Analytical Solutions}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[]{0.75\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q2/plots/q2_num_soln.png}
+        \caption{Numerical Solution at Varying Times}
+        \label{fig:q2_num_plot}
+    \end{subfigure}
+    \\
+    \begin{subfigure}[]{0.75\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q2/plots/q2_anal_soln.png}
+        \caption{Analytical Solution at Varying Times}
+        \label{fig:q2_anal_plot}
+    \end{subfigure}
+    \caption{1D Heat Equation Solutions at $t = 0.1, 1, 10$ seconds}
+    \label{fig:q2_plots}
+\end{figure}
+
+For the numerical solution to the 1D heat equation, figure \ref{fig:q2_num_plot} shows a slight variation in the temperature distribution after $t$ = 0.1 seconds have elapsed. However, it is apparent that at $t$ = 1 second and $t$ = 10 seconds, the function has already reached a steady-state - illustrated by the linear increase in temperature from boundary condition $T_0$ = 0 to $T_L$ = 2 (units of temperature). In fact, the plots of temperature at $t$ = 1 and $t$ = 10 are identical and on-top of one another. We can conclude that the numerical solution approximates that the temperature distribution will reach a steady-state with respect to time, after only 1 second. Furthermore, the analytical solution plots shown in figure \ref{fig:q2_anal_plot} demonstrate a nearly rapid progression towards steady-state as all 3 plots are identical, falling on the same line. The major difference between the numerical and analytical solution is the temperature distribution at $t$ = 0.1 seconds. Although the numerical solution only suggests a small deviation from steady-state after 0.1 seconds elapsed, we can conclude from both figures \ref{fig:q2_num_plot} and \ref{fig:q2_anal_plot}, that the material being modelled by equation \ref{eqn:q2_pde} rapidly reaches a steady-state of temperature across its length.
+
+\subsection{Solution Accuracy and Parameter Choice}
+
+The problem defined a material with length ($L$) of 1 unit and required an analysis of the material at three distinct time-points, the largest being 10 seconds. This served as the total time that the time-advancement scheme would increment to. Additionally, the PDE defined in equation \ref{eqn:q2_pde} denotes that $\alpha$ = 2. With these parameters defined, an appropriate grid-spacing was required for both time ($\Delta t$) and distance ($\Delta x$). Listing \ref{lst:q2_num_param} below shows the exact grid spacing chosen for the numerical solution analysis.
+
+\setcounterref{lstlinereffirst}{code:q2_num_param_start}
+\setcounterref{lstlinereflast}{code:q2_num_param_end}
+\lstinputlisting[title=\texttt{\scriptsize Numerical Solution Grid Spacing Parameters},
+                 caption=Numerical Solution Grid Spacing Parameters | Q2\_1D\_heat\_eqn.m,
+                 label=lst:q2_num_param,
+                 firstline=\thelstlinereffirst,
+                 lastline=\thelstlinereflast,
+                 firstnumber=\thelstlinereffirst]{./Q2_1D_heat_eqn.m}
+
+100 grid points were evaluated along the material's length from $x \in (0,L=1)$. 400,000 time points were evaluated from $t \in (0,10)$ seconds. This equated to a $\Delta x$ = 0.01 and a $\Delta\,t = 2.5\times10^{-5}$. When using the explicit time-advancement scheme to numerically solve a PDE, it is important to consider stability and its effect on accuracy. Stability can be defined by equation \ref{eqn:q2_stability}.
+
+\begin{equation}
+    \label{eqn:q2_stability}
+    \begin{gathered}
+        F = \frac{2 \Delta t}{\Delta x^2} \\
+        F = \frac{2 \times 2.5\times10^{-5}}{0.01^2} \\
+        F = 0.5 \\
+        (1 - 2F) > 0 \\
+        (1 - 2\times0.5) > 0 \checkmark
+    \end{gathered}
+\end{equation}
+
+Since, the chosen $\Delta x$ and $\Delta t$ satisfied equation \ref{eqn:q2_stability}, the explicit method would remain stable. This stability coincides with the accuracy of the numerical solutions shown in figure \ref{fig:q2_num_plot}, as there are an extremely large amount of time points captured and evaluated along a sufficiently small amount of grid points. 
+
+Similarly, in order to derive an analytical solution to the 1D Heat Equation PDE, several steps and simplifications are made. To simplify the Fourier coefficient, a complex integral is required to be solved due to the non-homogeneous Dirichlet boundaries and the trigonometric initial condition. Errors made during the simplification can lead to inaccuracy within the sum of the Fourier series used to approximate the non-steady component of the temperature distribution. However, as illustrated in figure \ref{fig:q2_anal_plot}, over time the solution approaches a steady state governed by the shift function $\phi = 2 x$ to reach the boundary conditions dictated at each respective endpoint.
 
 % Question 3 ────────────────────────────────────────────────────────────────────── %
 \clearpage
 \section{2D Heat Equation - Cooling Flatbread}
 
-General statement, blah blah
+An interesting application of 2D Heat Equations is analyzing and modelling the process of cooling down something like a piece of flatbread on a large square plane. This question analyzes and numerically solves the 2D Heat Equation for this problem for two different types of setups. The first setup is using exclusively Dirichlet boundary conditions to provide beginning values for the solution. The second setup that was analyzed used mixed boundary conditions. It used 2 boundary conditions which were Dirichlet boundary conditions similar to the previous setup, and then it used 2 boundary conditions which were Neumann boundary conditions. 
 
 \subsection{Exclusively Dirichlet Boundary Conditions}
 
+The first problem in this question focused on solving a PDE for cooling a piece of flatbread using exclusively Dirichlet boundary conditions. This situation is modelled by the following PDE:
+
+\begin{equation}
+    \label{eqn:q3_PDE}
+    \frac{\partial T}{\partial t} = \alpha \nabla^2 T , \qquad \text{where} \quad \alpha = 1
+\end{equation}
+
+\noindent This PDE can be rewritten explicitly using x and y instead of the Laplacian operator as the following:
+
+\begin{equation}
+    \label{eqn:q3_PDE_simplified}
+    \frac{\partial T}{\partial t} = \frac{\partial^2 T}{\partial x^2} + \frac{\partial^2 T}{\partial y^2}
+\end{equation}
+
+\noindent In order to solve this PDE the following initial conditions were provided: 
+
+\begin{equation}
+        \label{eqn:q3_Dirichlet_IC}
+        T(x,y,t=0) = \sin(\pi x) \, \sin(4\pi y)
+\end{equation}
+
+Another thing that is required in order to obtain the numerical solution to an ODE is boundary conditions. For this question, the Dirichlet boundary conditions were provided. Dirichlet boundary conditions are boundary conditions that provide the value of the function at each of the boundary's. For this problem, the following boundary conditions were provided:
+
+\begin{equation}
+    \label{eqn:q3_Dirichlet_BC}
+    \begin{aligned}
+        & T(x = 0, t) = 0, \\
+        & T(x = 1, t) = 0, \\
+        & T(y = 0, t) = \sin(\pi x), \\
+        & T(y = 1, t) = \cos(2\pi x) - 1
+    \end{aligned}
+\end{equation}
+
+\noindent In order to numerically solve this PDE, the first step is to discretize the problem.
+
+\begin{equation}
+    \label{eqn:q3_discretizing}
+    \frac{T_{i,j}^{k+1} - T_{i,j}^k}{\Delta t} = \frac{T_{i+1,j}^k - 2T_{i,j}^k + T_{i-1,j}^k}{\Delta x^2} + \frac{T_{i,j+1}^k - 2T_{i,j}^k + T_{i,j-1}^k}{\Delta y^2}
+\end{equation}
+
+\noindent This equation can then be rearranged to isolate for the $T_{i,j}^{k+1}$ term, which will be used in MATLAB to set up the numerical solution to this PDE:
+
+\begin{equation}
+    \label{eqn:q3_discretizing_2}
+    T_{i,j}^{k+1} = T_{i,j}^k + \Delta t \left( \frac{T_{i+1,j}^k - 2T_{i,j}^k + T_{i-1,j}^k}{\Delta x^2} + \frac{T_{i,j+1}^k - 2T_{i,j}^k + T_{i,j-1}^k}{\Delta y^2} \right)
+\end{equation}
+
 \subsection{Mixed Boundary Conditions}
 
+The second problem in this question focused on solving the exact same PDE, just using slightly different initial conditions and using different types of boundary conditions. This problem used a combination of 2 Dirichlet boundary conditions as well as 2 Neumann boundary conditions. 
+
+\noindent The initial conditions that were provided for this problem are the following:
+
+\begin{equation}
+        \label{eqn:q3_Neumann_IC}
+        T(x,y,t=0) = \sin(4\pi x) \, \cos(4\pi y)
+\end{equation}
+
+The major difference between this problem and the first problem in this question is the provided boundary conditions. In this problem, 2 Neumann boundary conditions were given, which instead of providing the value of the function at the boundary, provide the value of the gradient of the function at the boundaries. 
+This gradient can then be solved and used to determine the values at the boundary. 2 Dirichlet boundary conditions were also provided, similar to the first problem. These were the provided boundary conditions:
+
+\begin{equation}
+    \label{eqn:q3_Neumann_BC}
+    \begin{aligned}
+        & \nabla T(x = 0, t) \cdot \mathbf{n} = 0, \\
+        & \nabla T(x = 1, t) \cdot \mathbf{n} = 2, \\
+        & T(y = 0, t) = 1, \\
+        & T(y = 1, t) = -1
+    \end{aligned}
+\end{equation}
+
+Despite the different initial and boundary conditions, the setup for discretizing and solving the PDE numerically is quite similar as before and it arrives at the same equation as Equation \ref{eqn:q3_discretizing_2}.
+
 \subsection{Interpretation}
+An extremely important aspect of dealing with using PDEs to model scenarios as well as solving PDEs is the ability to understand and interpret the physical meaning of the setups and initial/boundary conditions. 
+
+The physical meaning of the PDE that is being analyzed in this case is that it is modelling the cooling of a piece of Flatbread in a 1x1 grid in the x-y plane. The physical meaning of the initial condition (different for both problems) is that it is the starting temperature of the flatbread.
+
+The boundary conditions also provide an insight on the physical system. The first 2 Dirichlet BCs that are provided can be interpreted physically as implying that the temperature along both x planes (when x = 0 or x = 1) for any time and any y-value, is 0 degrees. The 2 other Dirichlet BCs indicate what the temperatures are along the y planes and provide the functions to model the temperature depending on the x value.
+
+The mixed boundary conditions that are provided in the second problem can also be interpreted physically and they are slightly different. The 2 Dirichlet BCs that are provided in this problem have the same physical interpretation as the Dirichlet BCs from the other problem, however it is the Neumann BCs that are different. The first Neumann boundary condition that is provided is $\nabla T(x = 0, t) \cdot \mathbf{n} = 0$. This means that along the x=0 plane, there is no energy transfer at the boundary. This could be the case if the boundary is insulated. The second Neumann boundary condition that is provided is $\nabla T(x=1, t) \cdot \mathbf{n} = 2$. This tells us that along the x=1 plane, there is a constant temperature gradient of 2. This would be the case if there is a constant heat drain on one side of the system. This could be a heat exchanger or a heat sink of some sort.
+
+\subsection{Solving Numerically and Visualizing Solutions}
+In order to solve these PDEs numerically, the discretized equation \ref{eqn:q3_discretizing_2} was used as well as the Initial and boundary conditions. These where set up in MATLAB using the demo code provided. 
+
+The initial and boundary conditions for the Dirichlet BC were setup in the MATLAB code as shown in listing \ref{lst:q3_initial_cond}.
+
+\setcounterref{lstlinereffirst}{code:q3_dirichlet_ic_start}
+\setcounterref{lstlinereflast}{code:q3_dirichlet_ic_end}
+\lstinputlisting[title=\texttt{\scriptsize Dirichlet Boundary and Initial Conditions},
+                 caption=Dirichlet Boundary and Initial Conditions | Q3\_Dirichlet\_BC.m,
+                 label=lst:q3_initial_cond,
+                 firstline=\thelstlinereffirst,
+                 lastline=\thelstlinereflast,
+                 firstnumber=\thelstlinereffirst]{Q3_Dirichlet_BC.m}
+                 
+Equation \ref{eqn:q3_discretizing_2} was then implemented into MATLAB using nested for loops and used to numerically calculate each successive value in order to solve the PDE. This is shown below in listing \ref{lst:q3_numerical_solution}:
+
+\setcounterref{lstlinereffirst}{code:q3_dirichlet_solving_start}
+\setcounterref{lstlinereflast}{code:q3_dirichlet_solving_end}
+\lstinputlisting[title=\texttt{\scriptsize Dirichlet Numerical Solution},
+                 caption= Dirichlet Numerical Solution | Q3\_Dirichlet\_BC.m,
+                 label=lst:q3_numerical_solution,
+                 firstline=\thelstlinereffirst,
+                 lastline=\thelstlinereflast,
+                 firstnumber=\thelstlinereffirst]{Q3_Dirichlet_BC.m}
+
+
+Now that the PDE had been numerically solved, MATLAB's plotting function was used to visualize the solution to the PDE and see the change of Temperatures through different time steps. This plotting function was used to create plots of the temperature on the x-y plane at 4 different time steps; 0s, 0.05s, 0.10s, and 0.15s. These plots are shown below in figure \ref{fig:q3_plots_a}.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q3/Dirichlet_BC/Dirichlet_BC_0s.png}
+        \caption{Temperature at t = 0s}
+        \label{fig:q3_Dirichlet_BC_0s_a}
+    \end{subfigure}
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q3/Dirichlet_BC/Dirichlet_BC_0.05s.png}
+        \caption{Temperature at t = 0.05s}
+        \label{fig:q3_Dirichlet_BC_0.05s_a}
+    \end{subfigure}
+    \\
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q3/Dirichlet_BC/Dirichlet_BC_0.10s.png}
+        \caption{Temperature at t = 0.10s}
+        \label{fig:q3_Dirichlet_BC_0.10s_a}
+    \end{subfigure}
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q3/Dirichlet_BC/Dirichlet_BC_0.15s.png}
+        \caption{Temperature at t = 0.15s}
+        \label{fig:q3_Dirichlet_BC_0.15s_a}
+    \end{subfigure}
+    \caption{Temperature along x-y plane at different time}
+    \label{fig:q3_plots_a}
+\end{figure}
+
+3D versions of the same plots were also included in order to visualize the solution to the PDE. These are shown below in figure \ref{fig:q3_plots_b}.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q3/Dirichlet_BC/3D/Dirichlet_BC_0s_3D.png}
+        \caption{Temperature at t = 0s}
+        \label{fig:q3_Dirichlet_BC_0s_b}
+    \end{subfigure}
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q3/Dirichlet_BC/3D/Dirichlet_BC_0.05s_3D.png}
+        \caption{Temperature at t = 0.05s}
+        \label{fig:q3_Dirichlet_BC_0.05s_b}
+    \end{subfigure}
+    \\
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q3/Dirichlet_BC/3D/Dirichlet_BC_0.10s_3D.png}
+        \caption{Temperature at t = 0.10s}
+        \label{fig:q3_Dirichlet_BC_0.10s_b}
+    \end{subfigure}
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q3/Dirichlet_BC/3D/Dirichlet_BC_0.15s_3D.png}
+        \caption{Temperature at t = 0.15s}
+        \label{fig:q3_Dirichlet_BC_0.15s_b}
+    \end{subfigure}
+    \caption{Temperature function at different time}
+    \label{fig:q3_plots_b}
+\end{figure}
+
+The numerical solution for the second PDE using different Initial and boundary conditions was quite similar in MATLAB to the solution to the first one, however there were some important differences. The biggest difference was of course in the initialization of the Initial and boundary conditions. Listing \ref{lst:q3_neumann_IC} shows the code that sets up the initial condition as well as the 2 Dirichlet boundary conditions.
+
+\setcounterref{lstlinereffirst}{code:q3_Neumann_IC_start}
+\setcounterref{lstlinereflast}{code:q3_Neumann_IC_end}
+\lstinputlisting[title=\texttt{\scriptsize Neumann Initial Conditions},
+                 caption=Neumann Initial Conditions | Q3\_Neumann\_BC.m,
+                 label=lst:q3_neumann_IC,
+                 firstline=\thelstlinereffirst,
+                 lastline=\thelstlinereflast,
+                 firstnumber=\thelstlinereffirst]{Q3_Neumann_BC.m}
+
+It is important to note that only 2 of the 4 boundary conditions have been set up so far in the code and the Neumann boundary conditions are still missing. Those were implemented in the loop which is used to iteratively solve the PDE as shown in listing \ref{lst:q3_neumann_solution}
+
+\setcounterref{lstlinereffirst}{code:q3_Neumann_solution_start}
+\setcounterref{lstlinereflast}{code:q3_Neumann_solution_end}
+\lstinputlisting[title=\texttt{\scriptsize Neumann Numerical Solution},
+                 caption=Neumann Numerical Solution | Q3\_Neumann\_BC.m,
+                 label=lst:q3_neumann_solution,
+                 firstline=\thelstlinereffirst,
+                 lastline=\thelstlinereflast,
+                 firstnumber=\thelstlinereffirst]{Q3_Neumann_BC.m}
+                 
+Since this PDE has now also been solved numerically, The same steps as before were followed MATLAB plotting was used to visualize it at 4 different time steps in the same way that was done for the Dirichlet BC problem. The 2D plots are shown below in figure \ref{fig:q3_plots_c}.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q3/Neumann_BC/Neumann_BC_0s.png}
+        \caption{Temperature at t = 0s}
+        \label{fig:q3_Neumann_BC_0s_a}
+    \end{subfigure}
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q3/Neumann_BC/Neumann_BC_0.05s.png}
+        \caption{Temperature at t = 0.05s}
+        \label{fig:q3_Neumann_BC_0.05s_a}
+    \end{subfigure}
+    \\
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q3/Neumann_BC/Neumann_BC_0.10s.png}
+        \caption{Temperature at t = 0.10s}
+        \label{fig:q3_Neumann_BC_0.10s_a}
+    \end{subfigure}
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q3/Neumann_BC/Neumann_BC_0.15s.png}
+        \caption{Temperature at t = 0.15s}
+        \label{fig:q3_Neumann_BC_0.15s_a}
+    \end{subfigure}
+    \caption{Temperature along x-y plane at different time}
+    \label{fig:q3_plots_c}
+\end{figure}
+
+Similar to before, 3D versions of these plots were included in order to visualize the solution to the PDE. These are shown below in figure \ref{fig:q3_plots_d}.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q3/Neumann_BC/Neumann_BC_0s_3D.png}
+        \caption{Temperature at t = 0s}
+        \label{fig:q3_Neumann_BC_0s_b}
+    \end{subfigure}
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q3/Neumann_BC/Neumann_BC_0.05s_3D.png}
+        \caption{Temperature at t = 0.05s}
+        \label{fig:q3_Neumann_BC_0.05s_b}
+    \end{subfigure}
+    \\
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q3/Neumann_BC/Neumann_BC_0.10s_3D.png}
+        \caption{Temperature at t = 0.10s}
+        \label{fig:q3_Neumann_BC_0.10s_b}
+    \end{subfigure}
+    \begin{subfigure}[]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{out/q3/Neumann_BC/Neumann_BC_0.15s_3D.png}
+        \caption{Temperature at t = 0.15s}
+        \label{fig:q3_Neumann_BC_0.15s_b}
+    \end{subfigure}
+    \caption{Temperature along x-y plane at different time}
+    \label{fig:q3_plots_d}
+\end{figure}
 
 % BIBLIOGRAPHY ──────────────────────────────────────────────────────────────────── %
 \clearpage
@@ -335,16 +841,16 @@ General statement, blah blah
 
 \subsection{Group Member Contribution}
 
-\begin{table}[]
+\begin{table}[H]
     \centering
     \caption{Group Member Contributions}
     \label{tab:member_contribution}
     \begin{tabular}{|c|p{9cm}|} \hline
         Member & \multicolumn{1}{|c|}{Contributions} \\ \hline
-        Japmeet Brar & \\ \hline
-        Kevin Chu & \\ \hline
-        Austin W. Milne & Question 1, Including Math, code, graphs, and report. Overall report formatting. \\ \hline
-        Joshua Selvanayagam & \\ \hline
+        Japmeet Brar & Question 3, Including Math, code, graphs and report. \\ \hline
+        Kevin Chu & Question 2, Including Math, code, graphs, and report. \\ \hline
+        Austin W. Milne & Question 1, Including Math, code, graphs, and report. Overall report formatting.\\ \hline
+        Joshua Selvanayagam & Question 2, Including Math, code, graphs, and report. \\ \hline
     \end{tabular}
 \end{table}
 
@@ -356,4 +862,17 @@ General statement, blah blah
                  label=lst:q1]{./Q1_egg_cook.m}
 \clearpage
 
+\lstinputlisting[title=\texttt{\scriptsize Q2_1D_heat_eqn.m},
+                 caption= 1D Heat Equation Numerical and Analytical Solutions| Q2\_1D\_heat\_eqn.m,
+                 label=lst:q2]{./Q2_1D_heat_eqn.m}
+\clearpage
+
+\lstinputlisting[title=\texttt{\scriptsize Q3_Dirichlet_BC.m},
+                 caption= Numerical 2D Heat Equation With Dirichlet BC| Q3\_Dirichlet\_BC.m,
+                 label=lst:q3]{./Q3_Dirichlet_BC.m}
+\clearpage
+
+\lstinputlisting[title=\texttt{\scriptsize Q3_Neumann_BC.m},
+                 caption= Numerical 2D Heat Equation With Mixed BC| Q3\_Neumann\_BC.m,
+                 label=lst:q3]{./Q3_Neumann_BC.m}
 \end{document}
