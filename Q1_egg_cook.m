@@ -4,7 +4,7 @@
 
 arg_set = ... % Code Name, Text Name, Radius (mm), initial temp, Outer temp, 3D graph div(*@\label{code:q1_args_start}@*)
  {"reg_egg",     "20 deg Chicken Egg",               0.0255, 20, 100,  1000; % 45mm x 57mm
-  "fridge_egg",  "20 deg Chicken Egg",               0.0255, 5,  100,  1000;
+  "fridge_egg",  "5 deg Chicken Egg",                0.0255, 5,  100,  1000;
   "quail_egg",   "20 deg Quail Egg",                 0.0145, 20, 100,   500; % 32mm x 25mm
   "ostrich_egg", "20 deg Ostrich Egg",               0.0875, 20, 100, 10000; % 20cm x 15cm
   "slow_egg",    "20 deg Chicken Egg in warm water", 0.0255, 20, 81,   2500; }; % (*@\label{code:q1_args_end}@*)
